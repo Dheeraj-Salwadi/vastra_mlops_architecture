@@ -1,0 +1,212 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.arch-wrap { padding: 1rem 0; }
+.arch-header { margin-bottom: 1.25rem; }
+.arch-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.arch-sub { font-size: 13px; color: var(--color-text-secondary); margin-top: 3px; }
+.stat-row { display: flex; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 16px; flex: 1; min-width: 100px; }
+.stat-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.stat-lbl { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+.layer-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 6px; }
+.layer-tag { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-secondary); width: 28px; display: flex; align-items: center; justify-content: center; border-right: 1.5px solid var(--color-border-tertiary); margin-right: 8px; flex-shrink: 0; }
+.layer-tag.sources { border-color: #5DCAA5; color: #0F6E56; }
+.layer-tag.ingest  { border-color: #378ADD; color: #185FA5; }
+.layer-tag.store   { border-color: #7F77DD; color: #534AB7; }
+.layer-tag.train   { border-color: #EF9F27; color: #854F0B; }
+.layer-tag.serve   { border-color: #D85A30; color: #993C1D; }
+.layer-tag.observe { border-color: #E24B4A; color: #A32D2D; }
+.layer-tag.cicd    { border-color: #888780; color: #5F5E5A; }
+.nodes { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; align-items: flex-start; }
+.node { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 7px 10px; cursor: pointer; transition: all 0.15s; min-width: 90px; flex: 1; max-width: 160px; position: relative; }
+.node:hover { border-color: var(--color-border-primary); background: var(--color-background-secondary); transform: translateY(-1px); }
+.node.active { border-color: var(--color-border-info); background: var(--color-background-info); }
+.node-name { font-size: 12px; font-weight: 500; color: var(--color-text-primary); line-height: 1.3; }
+.node.active .node-name { color: var(--color-text-info); }
+.node-sub { font-size: 10px; color: var(--color-text-secondary); margin-top: 2px; line-height: 1.3; }
+.node.active .node-sub { color: var(--color-text-info); opacity: 0.8; }
+.node-dot { position: absolute; top: 7px; right: 8px; width: 6px; height: 6px; border-radius: 50%; }
+.dot-sources { background: #1D9E75; }
+.dot-ingest  { background: #378ADD; }
+.dot-store   { background: #7F77DD; }
+.dot-train   { background: #EF9F27; }
+.dot-serve   { background: #D85A30; }
+.dot-observe { background: #E24B4A; }
+.dot-cicd    { background: #888780; }
+.feedback-bar { display: flex; align-items: center; gap: 8px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 8px 12px; margin: 8px 0; }
+.feedback-line { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--color-text-secondary); flex: 1; flex-wrap: wrap; }
+.feedback-arrow { font-size: 14px; color: #E24B4A; flex-shrink: 0; }
+.fchip { background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 500; white-space: nowrap; }
+.fchip.red    { border-color: #E24B4A; color: #A32D2D; background: #FCEBEB; }
+.fchip.amber  { border-color: #EF9F27; color: #854F0B; background: #FAEEDA; }
+.fchip.green  { border-color: #1D9E75; color: #0F6E56; background: #E1F5EE; }
+.detail-panel { background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-top: 1rem; display: none; }
+.detail-panel.open { display: block; }
+.detail-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+.detail-body { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+.detail-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.dtag { font-size: 11px; padding: 3px 9px; border-radius: 99px; border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); background: var(--color-background-secondary); }
+.dtag.why { border-color: #378ADD; color: #185FA5; background: #E6F1FB; }
+.dtag.vs  { border-color: #888780; color: #5F5E5A; background: #F1EFE8; }
+.hint { font-size: 11px; color: var(--color-text-tertiary); text-align: center; margin-top: 8px; }
+@media (prefers-color-scheme: dark) {
+  .fchip.red   { background: #501313; color: #F09595; }
+  .fchip.amber { background: #412402; color: #FAC775; }
+  .fchip.green { background: #04342C; color: #5DCAA5; }
+  .dtag.why { background: #042C53; color: #85B7EB; }
+  .dtag.vs  { background: #2C2C2A; color: #B4B2A9; }
+  .layer-tag.sources { color: #5DCAA5; }
+  .layer-tag.ingest  { color: #85B7EB; }
+  .layer-tag.store   { color: #AFA9EC; }
+  .layer-tag.train   { color: #FAC775; }
+  .layer-tag.serve   { color: #F0997B; }
+  .layer-tag.observe { color: #F09595; }
+}
+</style>
+
+<div class="arch-wrap">
+  <div class="arch-header">
+    <div class="arch-title">Vastra — MLOps reference architecture</div>
+    <div class="arch-sub">Two models · One platform · Five pipeline layers · Click any component to explore</div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat"><div class="stat-val">29</div><div class="stat-lbl">Components</div></div>
+    <div class="stat"><div class="stat-val">5</div><div class="stat-lbl">Pipeline layers</div></div>
+    <div class="stat"><div class="stat-val">&lt;4h</div><div class="stat-lbl">Drift → Deploy</div></div>
+    <div class="stat"><div class="stat-val">₹1.6Cr</div><div class="stat-lbl">Annual infra</div></div>
+    <div class="stat"><div class="stat-val">80ms</div><div class="stat-lbl">Rec p95 latency</div></div>
+  </div>
+
+  <div id="layers"></div>
+
+  <div class="feedback-bar">
+    <span class="feedback-arrow">↻</span>
+    <div class="feedback-line">
+      <span style="font-size:11px;font-weight:500;color:var(--color-text-primary);">Closed feedback loop &nbsp;</span>
+      <span class="fchip red">Evidently PSI &gt; 0.3</span>
+      <span style="color:var(--color-text-tertiary)">→</span>
+      <span class="fchip amber">Airflow DAG fires</span>
+      <span style="color:var(--color-text-tertiary)">→</span>
+      <span class="fchip amber">Train → Gate → Register</span>
+      <span style="color:var(--color-text-tertiary)">→</span>
+      <span class="fchip green">Canary deploy (38 min)</span>
+    </div>
+  </div>
+
+  <div id="detail" class="detail-panel">
+    <div class="detail-title" id="d-title"></div>
+    <div class="detail-body" id="d-body"></div>
+    <div class="detail-tags" id="d-tags"></div>
+  </div>
+  <div class="hint" id="hint">Click any component above to see why it was chosen</div>
+</div>
+
+<script>
+const layers = [
+  { id: "sources", label: "Sources", nodes: [
+    { name: "Snowplow", sub: "User events", why: "Schema-first edge validation. Single SDK contract across web, iOS, and Android.", vs: "GA4 (no first-party export), custom Kafka producers" },
+    { name: "Postgres CDC", sub: "Transactions", why: "Row-level change capture via Debezium without impacting the production DB. Emits Avro to Kafka.", vs: "AWS DMS (less control), polling jobs (load on prod DB)" },
+    { name: "Airflow HTTP", sub: "External signals", why: "Weather and trend signals ingested on schedule. Lightweight HTTP operator, no new infra.", vs: "Custom scrapers (maintenance burden)" },
+    { name: "Label Studio", sub: "Annotations", why: "Stylist and CX teams label 5K–15K rows/week. Webhook triggers retrain at 5K new rows.", vs: "Scale AI (cost), in-house tool (build cost)" },
+    { name: "Schema Registry", sub: "Avro schemas", why: "Edge validation catches bad events before they hit the bus. Prevents downstream silent failures.", vs: "JSON without schema (schema drift undetected)" },
+  ]},
+  { id: "ingest", label: "Ingest", nodes: [
+    { name: "Kafka + Kinesis", sub: "Event bus", why: "Replayable, exactly-once topics. Kinesis Firehose lands raw events in S3 with no operator overhead.", vs: "RabbitMQ (no replay), Kinesis alone (vendor lock)" },
+    { name: "Spark Streaming", sub: "5-min micro-batch", why: "Same engine for batch and streaming. Delta Lake sinks provide ACID on S3.", vs: "Flink (team depth in Spark), Kafka Streams (Java-only)" },
+    { name: "dbt + Snowflake", sub: "Modelled marts", why: "Gold layer built hourly. Analytics team already on Snowflake. Zero-copy clones for training datasets.", vs: "Redshift (concurrency cost), BigQuery (multi-cloud)" },
+    { name: "Great Expectations", sub: "Quality gate", why: "Fail-fast on bad data before it poisons the feature store. Suite runs in the Airflow DAG.", vs: "Custom assertions (maintenance), no gate (silent poison)" },
+    { name: "DataHub", sub: "Lineage catalog", why: "Column-level lineage. Every feature traces back to its source event and transformation.", vs: "OpenMetadata (smaller community), no catalog (blind)" },
+  ]},
+  { id: "store", label: "Store", nodes: [
+    { name: "S3 + Delta Lake", sub: "Lakehouse", why: "Bronze/silver/gold zones with ACID transactions and time-travel for reproducibility.", vs: "HDFS (high ops cost), Iceberg (fewer team connectors)" },
+    { name: "Feast (OSS)", sub: "Feature store", why: "Offline (S3) and online (Redis) with the same feature definitions. Point-in-time joins prevent label leakage.", vs: "Tecton (expensive), SageMaker Feature Store (vendor lock)" },
+    { name: "Redis (online)", sub: "&lt;5ms reads", why: "Streaming materialization keeps features fresh (&lt;3 min lag). Sub-5ms round-trip for online inference.", vs: "DynamoDB (latency), in-memory dict (no durability)" },
+    { name: "DVC + Git", sub: "Data versioning", why: "Training data pinned to a commit hash. Full reproducibility — every run traceable to exact dataset.", vs: "No versioning (irreproducible), LakeFS (extra infra)" },
+    { name: "FAISS Index", sub: "SKU embeddings", why: "ANN search over 3M SKUs returning top-500 candidates in milliseconds. CPU-friendly at serving time.", vs: "ScaNN (GCP-centric), brute-force scan (too slow at 3M SKUs)" },
+  ]},
+  { id: "train", label: "Train", nodes: [
+    { name: "Airflow (MWAA)", sub: "Orchestration", why: "Mature, Python-native, broad operator library. MWAA removes operational overhead.", vs: "Prefect (smaller community), Dagster (team familiarity gap)" },
+    { name: "MLflow", sub: "Experiment tracking", why: "De-facto standard. Framework-agnostic auto-logging. Paired directly with the model registry.", vs: "W&B (premium cost), Neptune (smaller community)" },
+    { name: "Kubeflow + Ray", sub: "Training compute", why: "Distributed training with GPU node groups via Karpenter. Spot instances cut cost ~70%.", vs: "SageMaker Training (lock-in), Vertex AI (multi-cloud)" },
+    { name: "Optuna HPO", sub: "30 trials", why: "Bayesian search over hyperparameters. 30 trials per run, reproducible with DVC-pinned data.", vs: "Grid search (too slow), Ray Tune (overlap with Ray)" },
+    { name: "Promotion gate", sub: "NDCG +0.5%", why: "Model only promotes if NDCG@20 beats champion by 0.5%, no segment regression &gt;1%, ECE &lt;0.05, cost &lt;₹8K.", vs: "No gate (silent regressions reach production)" },
+  ]},
+  { id: "serve", label: "Serve", nodes: [
+    { name: "BentoML / EKS", sub: "Rec API · p95 &lt;80ms", why: "Pythonic service definition, gRPC and HTTP, Kubernetes autoscaling, request batching for cost.", vs: "Seldon Core (heavy CRDs), TorchServe (framework-specific)" },
+    { name: "ElastiCache", sub: "15min TTL cache", why: "Repeated page loads served from edge. Reduces inference calls ~40% at peak.", vs: "In-process cache (no sharing across pods)" },
+    { name: "Argo Rollouts", sub: "1%→10%→50%→100%", why: "Canary with auto-rollback on SLO breach. Mean time to safe full deploy: 38 minutes.", vs: "Manual blue-green (risky), feature flags alone (no traffic control)" },
+    { name: "SageMaker Batch", sub: "Forecaster · 02:00 IST", why: "Fully managed. S3-in/S3-out. Scales transparently for nightly 14-day SKU forecast job.", vs: "Custom EKS batch (more ops), Glue (poor GPU support)" },
+    { name: "GrowthBook", sub: "A/B framework", why: "OSS A/B framework. 1%→10%→50%→100% traffic ramp with causal GMV measurement.", vs: "Statsig (cost), home-built (stats validity risk)" },
+  ]},
+  { id: "observe", label: "Observe", nodes: [
+    { name: "Evidently AI", sub: "PSI · KS · 30min", why: "PSI, KS, Wasserstein tests out of the box. Reports to S3 and Grafana. Native Airflow operator.", vs: "Whylogs (lighter, weaker reports), SageMaker Monitor (lock-in)" },
+    { name: "Prometheus", sub: "p50 · p95 · p99", why: "One open-source stack. Same query language as Grafana. Alertmanager routes by severity.", vs: "CloudWatch (retention cost at scale), Datadog (cost)" },
+    { name: "Grafana + Loki", sub: "Business + infra + model", why: "Single dashboard for latency, drift, CTR, GMV, and stock-out rate. Model quality and revenue in one view.", vs: "Kibana (ELK cost), separate tools (context-switching)" },
+    { name: "PagerDuty + Slack", sub: "SEV-2 page · 30min MTTR", why: "SEV-2 pages on-call. SEV-3 goes to Slack. 30-min MTTR target for model incidents.", vs: "Email alerts (too slow), OpsGenie (cost)" },
+    { name: "OpenTelemetry", sub: "request_id everywhere", why: "Trace propagation across API gateway, BentoML, Feast, and monitoring. Every prediction traceable.", vs: "Custom tracing (fragmented), Jaeger alone (no standard)" },
+  ]},
+  { id: "cicd", label: "CI / CD", nodes: [
+    { name: "GitHub Actions", sub: "lint · test · build", why: "Native to the repo. Enforces GPU cost cap per training run in CI. Blocks ad-hoc feature transforms.", vs: "Jenkins (ops burden), CircleCI (cost)" },
+    { name: "ArgoCD", sub: "GitOps · EKS sync", why: "Declarative deployments. Every infra change is a Git commit. Audit trail for free.", vs: "Flux (less UI), manual kubectl (no audit trail)" },
+    { name: "Terraform + Atlantis", sub: "infra plan-apply", why: "Plan-on-PR, apply-on-merge. Infra as code with PR-level review for every change.", vs: "CloudFormation (verbose), Pulumi (team unfamiliarity)" },
+    { name: "HashiCorp Vault", sub: "secrets · OIDC", why: "Dynamic secrets for AWS, Snowflake, and Redis. OIDC removes long-lived credentials from pods.", vs: "AWS Secrets Manager (lock-in), env vars (insecure)" },
+  ]},
+];
+
+let activeNode = null;
+
+function render() {
+  const container = document.getElementById('layers');
+  container.innerHTML = '';
+  layers.forEach(layer => {
+    const row = document.createElement('div');
+    row.className = 'layer-row';
+    const tag = document.createElement('div');
+    tag.className = `layer-tag ${layer.id}`;
+    tag.textContent = layer.label;
+    row.appendChild(tag);
+    const nodes = document.createElement('div');
+    nodes.className = 'nodes';
+    layer.nodes.forEach(n => {
+      const el = document.createElement('div');
+      el.className = `node`;
+      el.innerHTML = `<span class="node-dot dot-${layer.id}"></span><div class="node-name">${n.name}</div><div class="node-sub">${n.sub}</div>`;
+      el.onclick = () => selectNode(el, n, layer.id);
+      nodes.appendChild(el);
+    });
+    row.appendChild(nodes);
+    container.appendChild(row);
+  });
+}
+
+function selectNode(el, node, layerId) {
+  if (activeNode === el) {
+    el.classList.remove('active');
+    activeNode = null;
+    document.getElementById('detail').classList.remove('open');
+    document.getElementById('hint').style.display = '';
+    return;
+  }
+  if (activeNode) activeNode.classList.remove('active');
+  el.classList.add('active');
+  activeNode = el;
+  const panel = document.getElementById('detail');
+  document.getElementById('d-title').textContent = node.name;
+  document.getElementById('d-body').textContent = node.why;
+  const tags = document.getElementById('d-tags');
+  tags.innerHTML = '';
+  if (node.vs) {
+    const t = document.createElement('span');
+    t.className = 'dtag vs';
+    t.textContent = 'Evaluated & passed: ' + node.vs;
+    tags.appendChild(t);
+  }
+  panel.classList.add('open');
+  document.getElementById('hint').style.display = 'none';
+}
+
+render();
+</script>
